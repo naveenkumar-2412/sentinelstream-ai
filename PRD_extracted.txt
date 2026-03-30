@@ -1,0 +1,56 @@
+HACKATHON PROJECT DOCUMENTATION: SENTINELSTREAM AI
+Project: GitLab AI Hackathon 2026
+Category: Productivity / Machine Learning & AI / Security
+Status: Draft Product Requirements Document (PRD) & Design Guide
+
+1. EXECUTIVE SUMMARY
+SentinelStream AI is an autonomous governance agent built on the GitLab Duo Agent Platform. Unlike traditional "scan-and-flag" security tools, SentinelStream acts as a digital teammate that triggers on Merge Requests (MRs). It identifies dependency risks, reasons through license compatibility, and proactively generates remediation commits to keep the software development lifecycle (SDLC) moving without manual security bottlenecks.
+
+2. PRODUCT REQUIREMENTS DOCUMENT (PRD)
+2.1 Problem Statement
+Security and compliance reviews are the "silent killers" of developer velocity. Developers often add libraries that:
+Contain critical vulnerabilities (CVEs).
+Have restrictive licenses (GPL/AGPL) that conflict with corporate policy.
+Are outdated or unmaintained.
+Current tools only alert the developer; they don't fix the problem, leading to "alert fatigue" and delayed deployments.
+2.2 The Solution
+SentinelStream is an autonomous agent that:
+Triggers automatically when a dependency file is modified.
+Researches the vulnerability and license status using external APIs (Google Cloud OSV).
+Decides on the best course of action (Upgrade vs. Alternative).
+Executes the fix by creating a sub-branch and a "Remediation MR."
+2.3 User Stories
+2.4 Functional Requirements
+FR1: Integration with GitLab Duo Agent Platform.
+FR2: Automated parsing of package.json, requirements.txt, and go.mod.
+FR3: Multi-Agent Orchestration (Scout Agent, Legal Agent, Fixer Agent).
+FR4: Asynchronous reporting via MR comments.
+
+3. TECHNICAL ARCHITECTURE
+3.1 Tech Stack
+Orchestration: GitLab Duo Agent Platform / GitLab Flows.
+Models: Anthropic Claude-3 (via GitLab) for reasoning; Gemini 1.5 Flash (via Google Cloud) for fast data parsing.
+Backend: Python (FastAPI) hosted on Google Cloud Run.
+Database: Google Cloud SQL (PostgreSQL) for policy storage.
+3.2 Agent Workflow Logic
+MR Event Hook: GitLab sends a webhook to the SentinelStream backend.
+Analysis Phase: Agent-Scout identifies the "Delta" (the exact libraries changed).
+Policy Check: Agent-Lawyer reads the local POLICY.md and compares it with the library metadata.
+Remediation Phase: If a conflict exists, Agent-Fixer uses Google Search (via GitLab Duo) to find the nearest stable, compliant version and submits a suggested change.
+
+4. DESIGN & VISUAL IDENTITY
+To ensure the agent feels like a native part of the GitLab ecosystem, the following design tokens are used:
+4.1 Color Palette
+4.2 UI Components
+The "Sentinel Badge": A dynamic SVG icon displayed in the MR description indicating the "Governance Score."
+Logic Disclosure: A collapsed Markdown section in MR comments labeled "Show SentinelStream's Reasoning" to build trust with developers.
+
+5. SUBMISSION & IMPACT STRATEGY
+5.1 Scoring Objectives
+Most Technically Impressive: Achieved by using multi-agent orchestration rather than a single prompt.
+Most Impactful: Achieved by solving the "compliance bottleneck," a multi-billion dollar friction point in enterprise software.
+Green Agent Prize: We optimize token usage by using "Scout" models for simple tasks and "Reasoning" models only when a conflict is detected.
+5.2 Demo Video Script (3 Minutes)
+0:00 - 0:45: The Conflict. A developer unknowingly adds a library with an AGPL license.
+0:45 - 2:00: The Agent at Work. Split screen showing the Agent "thinking" and searching for an MIT-licensed alternative.
+2:00 - 3:00: The Resolution. The Agent posts a comment: "I've detected a license conflict. I recommend using [Alternative] instead. Click here to apply the fix."
