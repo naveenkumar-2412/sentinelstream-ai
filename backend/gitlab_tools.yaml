@@ -1,0 +1,33 @@
+# gitlab_tools.yaml
+# GitLab Duo Custom Agent - Tool Definitions
+# Maps the PRD capabilities to GitLab's native agent system
+tools:
+  - name: edit_file
+    description: "Grants the agent permission to suggest commits and generate remediations for non-compliant dependencies."
+    action: "create_mr_suggestion"
+    parameters:
+      file_path:
+        type: string
+        description: "Path to the dependency manifest (e.g., package.json)"
+      old_line:
+        type: integer
+        description: "The line number of the old dependency version"
+      new_content:
+        type: string
+        description: "The upgraded dependency version string"
+
+  - name: Google Search
+    description: "Search the web to verify license terms for obscure libraries not found in PyPI or npm registries."
+    action: "execute_web_search"
+    parameters:
+      query:
+        type: string
+        description: "Search query like '{package_name} {version} license SPDX'"
+
+  - name: issue_comment
+    description: "Allows the agent to post the SentinelStream Audit summary table to the MR."
+    action: "post_mr_comment"
+    parameters:
+      body:
+        type: string
+        description: "The formatted Markdown audit report containing the Sentinel Badge and logic disclosure."
