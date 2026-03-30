@@ -1,0 +1,58 @@
+```mermaid
+graph TD
+    %% ─── Styling ───
+    classDef gitlab fill:#FC6D26,stroke:#E24329,stroke-width:2px,color:white;
+    classDef agent fill:#1F75CB,stroke:#10529A,stroke-width:2px,color:white;
+    classDef database fill:#108548,stroke:#0B5D32,stroke-width:2px,color:white;
+    classDef model fill:#E5A00D,stroke:#A17109,stroke-width:2px,color:white;
+    classDef file fill:#EBEBEB,stroke:#666666,stroke-width:1px;
+
+    %% ─── External Boundaries ───
+    MR[GitLab Merge Request\nTrigger]:::gitlab
+    Comment[GitLab MR\nRemediation Comment]:::gitlab
+    
+    POLICY[(POLICY.md)]:::file
+    OSV[(Google Cloud OSV API)]:::database
+    NPM[(PyPI / npm / Go)]:::database
+
+    %% ─── Models ───
+    Flash((Gemini 1.5 Flash\nFast Parsing)):::model
+    Claude((Claude-3\nDeep Reasoning)):::model
+
+    %% ─── Agent Architecture ───
+    subgraph SentinelStream["SentinelStream AI (FastAPI / Cloud Run)"]
+        direction TB
+        Orchestrator{Orchestrator DAG\nController}:::agent
+        
+        Scout[🕵️ Agent-Scout\nDetect Dependency Deltas]:::agent
+        Lawyer[⚖️ Agent-Lawyer\nPolicy & CVE Compliance]:::agent
+        Fixer[🔧 Agent-Fixer\nGenerate Remediation Fixes]:::agent
+        
+        Router{Logic Gating Router}:::agent
+    end
+
+    %% ─── Connections ───
+    MR -- "Webhook Event" --> Orchestrator
+    
+    Orchestrator -- "1. Identify changes" --> Scout
+    Scout -- "Returns list of\nadded/modified deps" --> Router
+    
+    Router -- "Patch Bumps" --> Flash
+    Router -- "Major / New Libs" --> Claude
+    
+    Flash -. "Analysis" .-> Lawyer
+    Claude -. "Analysis" .-> Lawyer
+    
+    Orchestrator -- "2. Check compliance" --> Lawyer
+    POLICY -. "Reads allowed list" .-> Lawyer
+    Lawyer -- "Query Licenses" --> NPM
+    Lawyer -- "Query CVEs" --> OSV
+    Lawyer -- "Returns block/warn/pass" --> Orchestrator
+    
+    Orchestrator -- "3. If blocked/warned" --> Fixer
+    Fixer -- "Finds Upgrade" --> OSV
+    Fixer -. "Step D: Self-Verify\nLicense/CVE" .-> Lawyer
+    Fixer -- "Returns replacement\ncode snippet" --> Orchestrator
+    
+    Orchestrator -- "4. Format Report" --> Comment
+```
